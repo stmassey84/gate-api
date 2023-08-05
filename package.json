@@ -1,0 +1,13 @@
+{
+  "name": "gate-api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "start:nohup": "nohup npm run start &"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "shelljs": "^0.8.5"
+  }
+}
