@@ -70,6 +70,12 @@
             buttonText.textContent = 'Open Gate';
         };
 
+        const setUnknown = () => {
+            statusElement.innerHTML = 'Gate is <span class="text-orange-500">Unknown</span>';
+            button.className = 'bg-orange-500 text-white px-6 py-3 rounded-lg text-xl inline-flex items-center';
+            buttonText.textContent = 'Open Gate';
+        };
+
         const setTransitioning = () => {
             button.disabled = true;
             buttonText.style.display = 'none';
@@ -100,10 +106,12 @@
             fetch('/status')
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data.status === 1) {
+                    if (data.status === "OPEN") {
                         setOpen();
-                    } else {
+                    } else if (data.status === "CLOSED") {
                         setClosed();
+                    } else {
+                        setUnknown();
                     }
                 })
                 .catch((error) => {
