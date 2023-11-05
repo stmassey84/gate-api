@@ -2,8 +2,8 @@ const express = require("express");
 const shell = require("shelljs");
 const fs = require("fs");
 const app = express();
-const port = 8080;
 
+const PORT = 80;
 const STATUS_FILE = "/var/www/gate_status.txt";
 const CYCLE_SCRIPT = "cycle.sh";
 
@@ -77,6 +77,6 @@ app.post("/cycle", (req, res) => {
     });  
 });
 
-app.listen(port, () => {
-  console.log(`Gate API listening on ${port}`);
+app.listen(PORT, () => {
+  console.log(`Gate API listening on ${PORT}`);
 });
