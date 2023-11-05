@@ -61,7 +61,7 @@ app.post("/cycle", (req, res) => {
     .then((status) => {
       const newStatus = status ^ 1;
       console.log("newStatus", newStatus);
-      //shell.exec(`./${CYCLE_SCRIPT}`);
+      shell.exec(`./${CYCLE_SCRIPT}`);
       updateGateStatus(newStatus)
         .then((result) => {
           console.log("success");
