@@ -106,17 +106,16 @@
             fetch('/status')
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data.status === "OPEN") {
+                    if (data.status === 1) {
                         setOpen();
-                    } else if (data.status === "CLOSED") {
-                        setClosed();
                     } else {
-                        setUnknown();
+                        setClosed();
                     }
                 })
                 .catch((error) => {
                     console.error(error);
                     statusElement.textContent = 'Failed to retrieve status';
+                    alert(error);
                 });
         };
 
@@ -135,6 +134,7 @@
                 .catch((error) => {
                     console.error(error);
                     statusElement.textContent = 'Failed to toggle the gate';
+                    alert(error);
                 });
         };
 
