@@ -3,7 +3,7 @@ const shell = require("shelljs");
 const fs = require("fs");
 const app = express();
 
-const PORT = 80;
+const PORT = 8080;
 const STATUS_FILE = "/var/www/gate_status.txt";
 const CYCLE_SCRIPT = "cycle.sh";
 
