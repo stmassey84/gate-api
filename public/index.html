@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Control</title>
+    <!-- Include the Tailwind CSS CDN (for development purposes) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .bg-custom {
+            background-image: url('images/gate.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="h-screen bg-custom relative">
+        <div class="absolute inset-0 bg-opacity-70 bg-gray-900">
+            <div>
+                <div class="container mx-auto h-screen flex justify-center items-center">
+                    <div class="w-128 mx-auto mt-16">
+                        <div class="bg-white rounded-lg p-16 shadow-lg">
+                            <div class="text-center">
+                                <h1 id="gateStatus" class="text-4xl font-bold mb-4">Loading...</h1>
+                                <button id="openGateButton"
+                                    class="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl inline-flex items-center">
+                                    <span id="openGateButtonText">Loading...</span>
+                                    <span id="openGateButtonSpinner" class="hidden ml-2">
+                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V2.3a10 10 0 00-7.2 19.4 8 8 0 01-1.8-9.7z"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <div class="basis-full" style="height: 0;"></div>
+                                <div id="openGateCountdown" class="text-gray-600 text-3xl mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const statusElement = document.getElementById('gateStatus');
+        const button = document.getElementById('openGateButton');
+        const buttonText = document.getElementById('openGateButtonText');
+        const spinner = document.getElementById('openGateButtonSpinner');
+        const countdown = document.getElementById('openGateCountdown');
+        const countdownDuration = 5;
+
+        const setOpen = () => {
+            statusElement.innerHTML = 'Gate is <span class="text-blue-500">Open</span>';
+            button.className = 'bg-red-500 text-white px-6 py-3 rounded-lg text-xl inline-flex items-center';
+            buttonText.textContent = 'Close Gate';
+        };
+
+        const setClosed = () => {
+            statusElement.innerHTML = 'Gate is <span class="text-red-500">Closed</span>';
+            button.className = 'bg-blue-500 text-white px-6 py-3 rounded-lg text-xl inline-flex items-center';
+            buttonText.textContent = 'Open Gate';
+        };
+
+        const setTransitioning = () => {
+            button.disabled = true;
+            buttonText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            statusElement.innerHTML = 'Gate is <span class="text-grey-500">Transitioning</span>';
+        };
+
+        const runInterval = (callback) => {
+            let secondsLeft = countdownDuration;
+            countdown.textContent = secondsLeft;
+
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                countdown.textContent = secondsLeft;
+
+                if (secondsLeft === 0) {
+                    callback();
+                    clearInterval(countdownInterval);
+                    countdown.textContent = '';
+                    button.disabled = false;
+                    buttonText.style.display = 'inline';
+                    spinner.style.display = 'none';
+                }
+            }, 1000);
+        };
+
+        const getStatus = () => {
+            fetch('/status')
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === 1) {
+                        setOpen();
+                    } else {
+                        setClosed();
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    statusElement.textContent = 'Failed to retrieve status';
+                });
+        };
+
+        const cycleGate = () => {
+            fetch('/cycle', { method: 'POST' })
+                .then((response) => response.json())
+                .then((data) => {
+                    runInterval(() => {
+                        if (data.status === 1) {
+                            setOpen();
+                        } else {
+                            setClosed();
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.error(error);
+                    statusElement.textContent = 'Failed to toggle the gate';
+                });
+        };
+
+        button.addEventListener('click', function () {
+            setTransitioning();
+            cycleGate();
+        });
+
+        // get current status
+        getStatus();
+    });
+</script>
+
+</html>
