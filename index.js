@@ -3,12 +3,14 @@ const shell = require("shelljs");
 const fs = require("fs");
 const app = express();
 
+app.use(express.json());
+
 const PORT = 8080;
 // const STATUS_SCRIPT = "read_gate_status.sh";
-// const OPEN_SCRIPT = "open_gate.sh";
-// const CLOSE_SCRIPT = "close_gate.sh";
-const STATUS_FILE = "/var/www/gate_status.txt";
+const OPEN_SCRIPT = "open_gate.sh";
+const CLOSE_SCRIPT = "close_gate.sh";
 const CYCLE_SCRIPT = "cycle.sh";
+const STATUS_FILE = "/var/www/gate_status.txt";
 
 // const getGateStatus = () => {
 //   const result = shell.exec(`./${STATUS_SCRIPT}`);
@@ -20,25 +22,25 @@ const CYCLE_SCRIPT = "cycle.sh";
 //   }
 // };
 
-// const openGate = () => {
-//   const result = shell.exec(`./${OPEN_SCRIPT}`);
+const openGate = () => {
+  const result = shell.exec(`./${OPEN_SCRIPT}`);
 
-//   if (result.code === 0) {
-//     return result.stdout.trim();
-//   } else {
-//     throw new Error(result.stderr);
-//   }
-// }
+  if (result.code !== 0) {
+    throw new Error(result.stderr);    
+  }
 
-// const closeGate = () => {
-//   const result = shell.exec(`./${CLOSE_SCRIPT}`);
+  return result.stdout.trim();
+}
 
-//   if (result.code === 0) {
-//     return result.stdout.trim();
-//   } else {
-//     throw new Error(result.stderr);
-//   }
-// }
+const closeGate = () => {
+  const result = shell.exec(`./${CLOSE_SCRIPT}`);
+
+  if (result.code !== 0) {
+    throw new Error(result.stderr);    
+  }
+
+  return result.stdout.trim();
+}
 
 const cycleGate = () => {
   const result = shell.exec(`./${CYCLE_SCRIPT}`);
@@ -98,27 +100,47 @@ app.get("/status", async (req, res) => {
   }
 });
 
+app.post("/status", async (req, res) => {
+  const status = req.body.status;
+  console.log(`Forcing status to ${status}`);
+  if (status !== 0 && status !== 1) {
+    return res.status(500).json({ message: "Invalid status", status });
+  }
+
+  await updateGateStatus(status);
+
+  res.status(200).json({ message: "Successfully updated status", status });
+});
+
 app.post("/cycle", async (req, res) => {
   let status;
-  let cycle;
 
   try {
     status = await getGateStatus();
+    console.log(`Current Gate status: ${status}`);
   } catch (err) {
     return res.status(500).json({ message: "There was a problem getting the gate's status", err });
   }
 
+  const newStatus = status ^ 1;
+
+  console.log(`New Gate status: ${newStatus}`);
+
   try {
-    cycle = cycleGate();    
+    if (status === 1) {
+      closeGate();
+    } else if (status === 0) {
+      openGate();
+    } else {
+      return res.status(500).json({ message: "Unable to cycle gate because its status is unknown", status });
+    }
   } catch (err) {
     return res.status(500).json({ message: "There was a problem cycling the gate", err });
   }
 
-  const newStatus = status ^ 1;
-
   try {
     updateGateStatus(newStatus);
-    return res.status(200).json({ status: res });
+    return res.status(200).json({ status: newStatus });
   } catch (err) {
     return res.status(500).json({ message: "There was a problem updating the gate's status", err });
   }

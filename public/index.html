@@ -46,8 +46,14 @@
                 </div>
             </div>
         </div>
+        <footer class="bg-gray-900 text-white text-center py-4 absolute bottom-0 w-full">
+            <div class="flex justify-end pr-8">
+                <a id="setGateOpenLink" href="#" class="text-gray-400 hover:text-gray-200 px-4">Set Open</a>
+                <a id="setGateClosedLink" href="#" class="text-gray-400 hover:text-gray-200">Set Closed</a>
+            </div>
+            &copy; 2023
+        </footer>
     </div>
-
 </body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -55,6 +61,8 @@
         const button = document.getElementById('openGateButton');
         const buttonText = document.getElementById('openGateButtonText');
         const spinner = document.getElementById('openGateButtonSpinner');
+        const setGateOpenLink = document.getElementById('setGateOpenLink');
+        const setGateClosedLink = document.getElementById('setGateClosedLink');
         const countdown = document.getElementById('openGateCountdown');
         const countdownDuration = 17;
 
@@ -119,6 +127,23 @@
                 });
         };
 
+        const setStatus = (newStatus) => {
+            fetch('/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                .then((response) => response.json())
+                .then(() => {
+                    if (newStatus === 1) {
+                        setOpen();
+                    } else {
+                        setClosed();
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    statusElement.textContent = 'Failed to set the gate status';
+                    alert(error);
+                });
+        };
+
         const cycleGate = () => {
             fetch('/cycle', { method: 'POST' })
                 .then((response) => response.json())
@@ -141,6 +166,14 @@
         button.addEventListener('click', function () {
             setTransitioning();
             cycleGate();
+        });
+
+        setGateClosedLink.addEventListener('click', function () {
+            setStatus(0);
+        });
+
+        setGateOpenLink.addEventListener('click', function () {
+            setStatus(1);
         });
 
         // get current status
