@@ -23,7 +23,7 @@ const STATUS_FILE = "/var/www/gate_status.txt";
 // };
 
 const openGate = () => {
-  const result = shell.exec(`./${OPEN_SCRIPT}`);
+  const result = shell.exec(`./${OPEN_SCRIPT} &`);
 
   if (result.code !== 0) {
     throw new Error(result.stderr);    
@@ -33,7 +33,7 @@ const openGate = () => {
 }
 
 const closeGate = () => {
-  const result = shell.exec(`./${CLOSE_SCRIPT}`);
+  const result = shell.exec(`./${CLOSE_SCRIPT} &`);
 
   if (result.code !== 0) {
     throw new Error(result.stderr);    
@@ -43,7 +43,7 @@ const closeGate = () => {
 }
 
 const cycleGate = () => {
-  const result = shell.exec(`./${CYCLE_SCRIPT}`);
+  const result = shell.exec(`./${CYCLE_SCRIPT} &`);
 
   if (result.code !== 0) {
     throw new Error(result.stderr);
@@ -113,6 +113,7 @@ app.post("/status", async (req, res) => {
 });
 
 app.post("/cycle", async (req, res) => {
+  const oldWay = req.body.oldWay;
   let status;
 
   try {
@@ -126,16 +127,24 @@ app.post("/cycle", async (req, res) => {
 
   console.log(`New Gate status: ${newStatus}`);
 
-  try {
-    if (status === 1) {
-      closeGate();
-    } else if (status === 0) {
-      openGate();
-    } else {
-      return res.status(500).json({ message: "Unable to cycle gate because its status is unknown", status });
+  if (oldWay) {
+    try {
+      cycleGate();
+    } catch (err) {
+      return res.status(500).json({ message: "There was a problem cycling the gate", err });
     }
-  } catch (err) {
-    return res.status(500).json({ message: "There was a problem cycling the gate", err });
+  } else {
+    try {
+      if (status === 1) {
+        closeGate();
+      } else if (status === 0) {
+        openGate();
+      } else {
+        return res.status(500).json({ message: "Unable to cycle gate because its status is unknown", status });
+      }
+    } catch (err) {
+      return res.status(500).json({ message: "There was a problem cycling the gate", err });
+    }
   }
 
   try {
