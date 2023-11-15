@@ -39,11 +39,6 @@
                                     </span>
                                 </button>
 
-                                <button id="forceCycleGateButton"
-                                    class="bg-red-500 text-white px-6 py-3 rounded-lg text-xl inline-flex items-center">
-                                    <span id="forceCycleGateButtonText">Force Cycle Gate</span>
-                                </button>
-
                                 <div class="basis-full" style="height: 0;"></div>
                                 <div id="openGateCountdown" class="text-gray-600 text-3xl mt-2"></div>
                             </div>
@@ -66,7 +61,6 @@
         const statusElement = document.getElementById('gateStatus');
         const button = document.getElementById('openGateButton');
         const buttonText = document.getElementById('openGateButtonText');
-        const forceButton = document.getElementById('forceCycleGateButton');
         const spinner = document.getElementById('openGateButtonSpinner');
         const setGateOpenLink = document.getElementById('setGateOpenLink');
         const setGateClosedLink = document.getElementById('setGateClosedLink');
@@ -152,51 +146,27 @@
         };
 
         const cycleGate = (oldWay) => {
-            if (typeof oldWay === 'boolean' && oldWay) {
-                fetch('/cycle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldWay: true }) })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        runInterval(() => {
-                            if (data.status === 1) {
-                                setOpen();
-                            } else {
-                                setClosed();
-                            }
-                        });
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        statusElement.textContent = 'Failed to toggle the gate';
-                        alert(error);
+            fetch('/cycle', { method: 'POST' })
+                .then((response) => response.json())
+                .then((data) => {
+                    runInterval(() => {
+                        if (data.status === 1) {
+                            setOpen();
+                        } else {
+                            setClosed();
+                        }
                     });
-            } else {
-                fetch('/cycle', { method: 'POST' })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        runInterval(() => {
-                            if (data.status === 1) {
-                                setOpen();
-                            } else {
-                                setClosed();
-                            }
-                        });
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        statusElement.textContent = 'Failed to toggle the gate';
-                        alert(error);
-                    });
-            }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    statusElement.textContent = 'Failed to toggle the gate';
+                    alert(error);
+                });
         };
 
         button.addEventListener('click', function () {
             setTransitioning();
             cycleGate();
-        });
-
-        forceButton.addEventListener('click', function () {
-            setTransitioning();
-            cycleGate(true);
         });
 
         setGateClosedLink.addEventListener('click', function () {
