@@ -4,6 +4,6 @@
 echo -e "\xA0\x01\x01\xA2" > /dev/ttyUSB0
 
 # Wait briefly to allow the gate to open
-sleep 18
+sleep .5
 
 echo "Gate is now open."
