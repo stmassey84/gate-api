@@ -6,41 +6,8 @@ const app = express();
 app.use(express.json());
 
 const PORT = 8080;
-// const STATUS_SCRIPT = "read_gate_status.sh";
-const OPEN_SCRIPT = "open_gate.sh";
-const CLOSE_SCRIPT = "close_gate.sh";
 const CYCLE_SCRIPT = "cycle.sh";
 const STATUS_FILE = "/var/www/gate_status.txt";
-
-// const getGateStatus = () => {
-//   const result = shell.exec(`./${STATUS_SCRIPT}`);
-
-//   if (result.code === 0) {
-//     return result.stdout.trim();
-//   } else {
-//     throw new Error(result.stderr);
-//   }
-// };
-
-const openGate = () => {
-  const result = shell.exec(`./${OPEN_SCRIPT} &`);
-
-  if (result.code !== 0) {
-    throw new Error(result.stderr);    
-  }
-
-  return result.stdout.trim();
-}
-
-const closeGate = () => {
-  const result = shell.exec(`./${CLOSE_SCRIPT} &`);
-
-  if (result.code !== 0) {
-    throw new Error(result.stderr);    
-  }
-
-  return result.stdout.trim();
-}
 
 const cycleGate = () => {
   const result = shell.exec(`./${CYCLE_SCRIPT} &`);
@@ -113,7 +80,6 @@ app.post("/status", async (req, res) => {
 });
 
 app.post("/cycle", async (req, res) => {
-  const oldWay = req.body.oldWay;
   let status;
 
   try {
@@ -127,24 +93,10 @@ app.post("/cycle", async (req, res) => {
 
   console.log(`New Gate status: ${newStatus}`);
 
-  if (oldWay) {
-    try {
-      cycleGate();
-    } catch (err) {
-      return res.status(500).json({ message: "There was a problem cycling the gate", err });
-    }
-  } else {
-    try {
-      if (status === 1) {
-        closeGate();
-      } else if (status === 0) {
-        openGate();
-      } else {
-        return res.status(500).json({ message: "Unable to cycle gate because its status is unknown", status });
-      }
-    } catch (err) {
-      return res.status(500).json({ message: "There was a problem cycling the gate", err });
-    }
+  try {
+    cycleGate();
+  } catch (err) {
+    return res.status(500).json({ message: "There was a problem cycling the gate", err });
   }
 
   try {
@@ -153,25 +105,6 @@ app.post("/cycle", async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: "There was a problem updating the gate's status", err });
   }
-
-  // if (status === "OPEN") {
-  //   // close
-  //   try {
-  //     closeGate();
-  //   } catch (err) {
-  //     res.status(500).json({ message: "There was a problem trying to close the gate", err });
-  //   }
-  // } else if (status === "CLOSED") {
-  //   // open
-  //   try {
-  //     openGate();
-  //   } catch (err) {
-  //     res.status(500).json({ message: "There was a problem trying to open the gate", err });
-  //   }    
-  // } else {
-  //   // unknown
-  //   res.status(500).json({ message: "Unknown gate status", status });
-  // } 
 });
 
 app.listen(PORT, () => {
