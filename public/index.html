@@ -65,7 +65,7 @@
         const setGateOpenLink = document.getElementById('setGateOpenLink');
         const setGateClosedLink = document.getElementById('setGateClosedLink');
         const countdown = document.getElementById('openGateCountdown');
-        const countdownDuration = 17;
+        const countdownDuration = 20;
 
         const setOpen = () => {
             statusElement.innerHTML = 'Gate is <span class="text-blue-500">Open</span>';
@@ -145,23 +145,20 @@
                 });
         };
 
-        const cycleGate = (oldWay) => {
+        const cycleGate = () => {
             fetch('/cycle', { method: 'POST' })
-                .then((response) => response.json())
-                .then((data) => {
-                    runInterval(() => {
-                        if (data.status === 1) {
-                            setOpen();
-                        } else {
-                            setClosed();
-                        }
-                    });
-                })
                 .catch((error) => {
                     console.error(error);
                     statusElement.textContent = 'Failed to toggle the gate';
                     alert(error);
                 });
+            runInterval(() => {
+                if (data.status === 1) {
+                    setOpen();
+                } else {
+                    setClosed();
+                }
+            });            
         };
 
         button.addEventListener('click', function () {
