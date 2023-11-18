@@ -10,13 +10,7 @@ const CYCLE_SCRIPT = "cycle.sh";
 const STATUS_FILE = "/var/www/gate_status.txt";
 
 const cycleGate = () => {
-  const result = shell.exec(`./${CYCLE_SCRIPT} &`);
-
-  if (result.code !== 0) {
-    throw new Error(result.stderr);
-  }
-
-  return result.stdout.trim();
+  shell.exec(`./${CYCLE_SCRIPT} &`);
 }
 
 const getGateStatus = () => {
@@ -89,6 +83,8 @@ app.post("/cycle", async (req, res) => {
     return res.status(500).json({ message: "There was a problem getting the gate's status", err });
   }
 
+  cycleGate();
+  
   const newStatus = status ^ 1;
 
   console.log(`New Gate status: ${newStatus}`);
@@ -99,12 +95,6 @@ app.post("/cycle", async (req, res) => {
   } catch (err) {
     return res.status(500).json({ message: "There was a problem updating the gate's status", err });
   }
-
-  try {
-    cycleGate();
-  } catch (err) {
-    return res.status(500).json({ message: "There was a problem cycling the gate", err });
-  }  
 });
 
 app.listen(PORT, () => {
