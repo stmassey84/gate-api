@@ -94,17 +94,17 @@ app.post("/cycle", async (req, res) => {
   console.log(`New Gate status: ${newStatus}`);
 
   try {
-    cycleGate();
-  } catch (err) {
-    return res.status(500).json({ message: "There was a problem cycling the gate", err });
-  }
-
-  try {
     updateGateStatus(newStatus);
     return res.status(200).json({ status: newStatus });
   } catch (err) {
     return res.status(500).json({ message: "There was a problem updating the gate's status", err });
   }
+
+  try {
+    cycleGate();
+  } catch (err) {
+    return res.status(500).json({ message: "There was a problem cycling the gate", err });
+  }  
 });
 
 app.listen(PORT, () => {
