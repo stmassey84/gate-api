@@ -99,6 +99,25 @@
             spinner.style.display = 'none';
         };
 
+        const runInterval = (callback) => {
+            let secondsLeft = countdownDuration;
+            countdown.textContent = secondsLeft;
+
+            const countdownInterval = setInterval(() => {
+                secondsLeft--;
+                countdown.textContent = secondsLeft;
+
+                if (secondsLeft === 0) {
+                    callback();
+                    clearInterval(countdownInterval);
+                    countdown.textContent = '';
+                    button.disabled = false;
+                    buttonText.style.display = 'inline';
+                    spinner.style.display = 'none';
+                }
+            }, 1000);
+        };
+
         const getStatus = () => {
             fetch('/status')
                 .then((response) => response.json())
@@ -118,33 +137,27 @@
 
         const setStatus = (newStatus) => {
             fetch('/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
-                .then((response) => response.json())
-                .then(() => {
-                    if (newStatus === 1) {
-                        setOpen();
-                    } else {
-                        setClosed();
-                    }
-                })
                 .catch((error) => {
                     console.error(error);
                     statusElement.textContent = 'Failed to set the gate status';
                     alert(error);
                 });
+            if (newStatus === 1) {
+                setOpen();
+            } else {
+                setClosed();
+            }
         };
 
         const cycleGate = () => {
             setTransitioning();
+            runInterval(getStatus);
             fetch('/cycle', { method: 'POST' })
                 .catch((error) => {
                     console.error(error);
                     statusElement.textContent = 'Failed to toggle the gate';
                     alert(error);
-                });            
-            setTimeout(() => {
-                reset();
-                getStatus();
-            }, timeout);          
+                });
         };
 
         button.addEventListener('click', function () {
