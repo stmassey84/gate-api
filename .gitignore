@@ -3,3 +3,4 @@ nohup.out
 package-lock.json
 logs/
 status.json
+*_temp
